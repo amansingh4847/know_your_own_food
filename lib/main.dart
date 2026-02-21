@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:know_your_own_food/login_page.dart';
+import 'package:know_your_own_food/home_page.dart';
 
 void main() {
   runApp(const MyApp());
