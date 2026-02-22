@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:know_your_own_food/scan_page.dart';
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
