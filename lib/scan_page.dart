@@ -16,6 +16,11 @@ class _ScanPageState extends State<ScanPage> {
   //image file
   File? image;
 
+  String calories = "";
+  String protein = "";
+  String fat = "";
+  String carbs = "";
+
   //image picker
   final picker = ImagePicker();
 
@@ -72,25 +77,62 @@ class _ScanPageState extends State<ScanPage> {
         .take(3) // top 5 tags only (optional)
         .toList();
 
+    String mainFood = pickMainFood(detectedTags);
+    print("Main Food: $mainFood");
+
+    await getNutritionFromSpoonacular(mainFood);
+
     setState(() {});
   }
 
   //we need to pick main food
-  
-  String pickMainFood(List<String> tags) {
-  List<String> ignoreWords = [
-    "food", "meal", "dish", "lunch", "dinner",
-    "snack", "plate", "delicious", "fresh"
-  ];
 
-  for (String tag in tags) {
-    bool isIgnored = ignoreWords.any((word) => tag.contains(word));
-    if (!isIgnored) {
-      return tag; // first valid food
+  String pickMainFood(List<String> tags) {
+    List<String> ignoreWords = [
+      "food",
+      "meal",
+      "dish",
+      "lunch",
+      "dinner",
+      "snack",
+      "plate",
+      "delicious",
+      "fresh",
+    ];
+
+    for (String tag in tags) {
+      bool isIgnored = ignoreWords.any((word) => tag.contains(word));
+      if (!isIgnored) {
+        return tag; // first valid food
+      }
+    }
+    return tags.isNotEmpty ? tags.first : "food";
+  }
+
+  Future<void> getNutritionFromSpoonacular(String food) async {
+    const apiKey = ApiKeys.spoonacularApi;
+
+    final encodedFood = Uri.encodeComponent(food);
+
+    final url =
+        "https://api.spoonacular.com/recipes/guessNutrition?title=$encodedFood&apiKey=$apiKey";
+
+    final response = await http.get(Uri.parse(url));
+
+    print("Nutrition Status: ${response.statusCode}");
+    print("Nutrition Body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      calories = data["calories"]["value"].toString();
+      protein = data["protein"]["value"].toString();
+      fat = data["fat"]["value"].toString();
+      carbs = data["carbs"]["value"].toString();
+
+      setState(() {});
     }
   }
-  return tags.isNotEmpty ? tags.first : "food";
-}
 
   @override
   Widget build(BuildContext context) {
@@ -168,6 +210,20 @@ class _ScanPageState extends State<ScanPage> {
                         return Chip(label: Text(tag));
                       }).toList(),
                     ),
+
+                    const SizedBox(height: 20),
+
+                    calories.isEmpty
+                        ? Container()
+                        : Column(
+                            children: [
+                              Text("----> Per Serving <----"),
+                              Text("Calories: $calories kcal"),
+                              Text("Protein: $protein g"),
+                              Text("Fat: $fat g"),
+                              Text("Carbs: $carbs g"),
+                            ],
+                          ),
                   ],
                 ),
         ],
