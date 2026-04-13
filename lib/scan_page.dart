@@ -137,7 +137,9 @@ class _ScanPageState extends State<ScanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Scan Food")),
+      appBar: AppBar(title: Text("Scan Food"),
+      backgroundColor: Colors.black,
+        foregroundColor: Colors.white,),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [

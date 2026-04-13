@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:know_your_own_food/scan_page.dart';
+import 'package:know_your_own_food/model_scan_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -30,7 +31,7 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 40,),
 
                 ElevatedButton(onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> ScanPage()));
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ModelScanPage()));
               },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
