@@ -24,7 +24,19 @@ class HomePage extends StatelessWidget {
                   backgroundColor: Colors.black,
                   padding: EdgeInsets.symmetric(horizontal: 48, vertical: 16),
                 ),
-                child: Text("Scan your food", style: TextStyle(color: Colors.white),),
+                child: Text("Scan food using api", style: TextStyle(color: Colors.white),),
+                ),
+
+                const SizedBox(height: 40,),
+
+                ElevatedButton(onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ScanPage()));
+              },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  padding: EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                ),
+                child: Text("Scan food using model", style: TextStyle(color: Colors.white),),
                 ),
             ],
           ),
