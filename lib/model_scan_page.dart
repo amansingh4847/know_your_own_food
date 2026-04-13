@@ -31,10 +31,10 @@ class _ModelScanPageState extends State<ModelScanPage> {
   List<Detection> detections = [];
 
   final List<String> labels = [
-    "Banana","aloo_mattar","aloo_gobi","chapati","biryani",
-    "chutney","chole","dal","dosa","dal",
-    "idli","eggs","orange","naan","paneer_curry",
-    "paratha","pav","puri","rice"
+    "Aloo_Gobhi","Aloo_mattar","Biryani","Chapati","Banana",
+    "Chutney","Dal","Dal","Dosa","dal",
+    "Idli","Eggs","Orange","Naan","Paneer_curry",
+    "Paratha","Puri","Pav","Rice"
   ];
 
   @override
