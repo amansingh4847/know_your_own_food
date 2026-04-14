@@ -5,6 +5,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
+import 'dart:convert'; // ✅ ADDED
 
 class ModelScanPage extends StatefulWidget {
   const ModelScanPage({super.key});
@@ -21,7 +22,6 @@ class Detection {
 }
 
 class _ModelScanPageState extends State<ModelScanPage> {
-
   File? image;
   final picker = ImagePicker();
 
@@ -30,17 +30,55 @@ class _ModelScanPageState extends State<ModelScanPage> {
 
   List<Detection> detections = [];
 
+  // ✅ ADDED
+  List<dynamic> nutritionData = [];
+  Map<String, Map<String, dynamic>?> nutritionMap = {};
+
   final List<String> labels = [
-    "Aloo_Gobhi","Aloo_mattar","Biryani","Chapati","Banana",
-    "Chutney","Dal","Dal","Dosa","Dal",
-    "Idli","Eggs","Orange","Naan","Paneer_curry",
-    "Paratha","Puri","Pav","Rice"
+    "Aloo_Gobhi",
+    "Aloo_mattar",
+    "Biryani",
+    "Chapati",
+    "Banana",
+    "Chutney",
+    "Dal",
+    "Dal",
+    "Dosa",
+    "Dal",
+    "Idli",
+    "Eggs",
+    "Orange",
+    "Naan",
+    "Paneer_curry",
+    "Paratha",
+    "Puri",
+    "Pav",
+    "Rice",
   ];
 
   @override
   void initState() {
     super.initState();
     loadModel();
+    loadNutrition(); // ✅ ADDED
+  }
+
+  // ✅ ADDED
+  Future<void> loadNutrition() async {
+    final String jsonString = await rootBundle.loadString(
+      'assets/nutrition.json',
+    );
+    nutritionData = json.decode(jsonString);
+  }
+
+  // ✅ ADDED
+  Map<String, dynamic>? getNutrition(String foodName) {
+    for (var item in nutritionData) {
+      if (item["name"] == foodName) {
+        return item;
+      }
+    }
+    return null;
   }
 
   Future<void> loadModel() async {
@@ -57,6 +95,7 @@ class _ModelScanPageState extends State<ModelScanPage> {
       setState(() {
         image = File(picked.path);
         detections.clear();
+        nutritionMap.clear(); // ✅ ADDED
       });
     }
   }
@@ -92,12 +131,11 @@ class _ModelScanPageState extends State<ModelScanPage> {
       (_) => List.generate(23, (_) => List.filled(8400, 0.0)),
     );
 
-    interpreter.run(input.reshape([1,640,640,3]), output);
+    interpreter.run(input.reshape([1, 640, 640, 3]), output);
 
     Map<String, double> uniqueResults = {};
 
     for (int i = 0; i < 8400; i++) {
-
       int cls = -1;
       double best = 0;
 
@@ -111,7 +149,6 @@ class _ModelScanPageState extends State<ModelScanPage> {
       if (best > 0.5) {
         String label = labels[cls];
 
-        // keep highest score only (no duplicates)
         if (!uniqueResults.containsKey(label) || uniqueResults[label]! < best) {
           uniqueResults[label] = best;
         }
@@ -126,6 +163,12 @@ class _ModelScanPageState extends State<ModelScanPage> {
 
     setState(() {
       detections = results;
+
+      // ✅ ADDED
+      nutritionMap.clear();
+      for (var d in detections) {
+        nutritionMap[d.label] = getNutrition(d.label);
+      }
     });
   }
 
@@ -141,7 +184,6 @@ class _ModelScanPageState extends State<ModelScanPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-
             // IMAGE
             Container(
               height: 220,
@@ -179,10 +221,11 @@ class _ModelScanPageState extends State<ModelScanPage> {
 
             ElevatedButton(
               onPressed: runModel,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+              child: const Text(
+                "Model scan",
+                style: TextStyle(color: Colors.white),
               ),
-              child: const Text("Model scan", style: TextStyle(color: Colors.white)),
             ),
 
             const SizedBox(height: 20),
@@ -202,6 +245,76 @@ class _ModelScanPageState extends State<ModelScanPage> {
                       );
                     }).toList(),
                   ),
+
+            const SizedBox(height: 20),
+
+            // ✅ ADDED NUTRITION UI
+            Expanded(
+              child: ListView(
+                children: detections.map((d) {
+                  final nutrition = nutritionMap[d.label];
+
+                  if (nutrition == null) {
+                    return Text("${d.label}: No data");
+                  }
+
+                  return Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+
+                      children: [
+
+                        Text(
+                          "⚠️ Values are estimated and based on 100g serving.",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          d.label,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        Text(
+                          "Calories: ${nutrition["calories"]}",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+
+                        Text(
+                          "Protein: ${nutrition["protein"]}g",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+
+                        Text(
+                          "Carbs: ${nutrition["carbs"]}g",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+
+                        Text(
+                          "Fat: ${nutrition["fat"]}g",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
           ],
         ),
       ),

@@ -9,6 +9,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: Text("KYOF"),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         ),
