@@ -1,0 +1,23 @@
+[
+  {"name": "Aloo_Gobhi", "calories": 90, "protein": 2.5, "carbs": 14, "fat": 3.5},
+  {"name": "Aloo_mattar", "calories": 110, "protein": 4, "carbs": 18, "fat": 3},
+  {"name": "Biryani", "calories": 150, "protein": 5, "carbs": 20, "fat": 5},
+  {"name": "Chapati", "calories": 120, "protein": 3.5, "carbs": 20, "fat": 2},
+  {"name": "Banana", "calories": 89, "protein": 1.1, "carbs": 23, "fat": 0.3},
+
+  {"name": "Chutney", "calories": 80, "protein": 2, "carbs": 10, "fat": 3},
+  {"name": "Dal", "calories": 116, "protein": 9, "carbs": 20, "fat": 0.4},
+  {"name": "Dosa", "calories": 168, "protein": 4.5, "carbs": 27, "fat": 3.7},
+
+  {"name": "Idli", "calories": 58, "protein": 2, "carbs": 12, "fat": 0.4},
+  {"name": "Eggs", "calories": 155, "protein": 13, "carbs": 1.1, "fat": 11},
+  {"name": "Orange", "calories": 47, "protein": 0.9, "carbs": 12, "fat": 0.1},
+  {"name": "Naan", "calories": 262, "protein": 9, "carbs": 45, "fat": 3.3},
+
+  {"name": "Paneer_curry", "calories": 265, "protein": 11, "carbs": 6, "fat": 20},
+  {"name": "Paratha", "calories": 300, "protein": 6, "carbs": 40, "fat": 12},
+  {"name": "Puri", "calories": 296, "protein": 6, "carbs": 38, "fat": 14},
+  {"name": "Pav", "calories": 265, "protein": 8, "carbs": 49, "fat": 3},
+
+  {"name": "Rice", "calories": 130, "protein": 2.7, "carbs": 28, "fat": 0.3}
+]

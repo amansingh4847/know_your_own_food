@@ -32,7 +32,7 @@ class _ModelScanPageState extends State<ModelScanPage> {
 
   final List<String> labels = [
     "Aloo_Gobhi","Aloo_mattar","Biryani","Chapati","Banana",
-    "Chutney","Dal","Dal","Dosa","dal",
+    "Chutney","Dal","Dal","Dosa","Dal",
     "Idli","Eggs","Orange","Naan","Paneer_curry",
     "Paratha","Puri","Pav","Rice"
   ];

@@ -8,6 +8,7 @@ class LifestylePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Lifestyle"),
+        backgroundColor: Colors.black,
       ),
       body: Center(
         child: Text("Lifestyle Page (Login later)"),
