@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:know_your_own_food/home_page.dart';
+import 'package:know_your_own_food/main_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return  MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      home: MainScreen(),
       theme: ThemeData.light(useMaterial3: true),
     );
   }
