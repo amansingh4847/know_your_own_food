@@ -172,7 +172,7 @@ class _ModelScanPageState extends State<ModelScanPage> {
       appBar: AppBar(
         title: const Text("Model Scan"),
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.orange,
       ),
 
       // 🔥 STACK (IMPORTANT)
@@ -188,7 +188,7 @@ class _ModelScanPageState extends State<ModelScanPage> {
                   height: 220,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: Color(0xFF121212),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: image != null
@@ -196,7 +196,7 @@ class _ModelScanPageState extends State<ModelScanPage> {
                           borderRadius: BorderRadius.circular(16),
                           child: Image.file(image!, fit: BoxFit.cover),
                         )
-                      : const Center(child: Text("No image selected")),
+                      : const Center(child: Text("No image selected", style: TextStyle(color: Colors.white),)),
                 ),
 
                 const SizedBox(height: 20),
@@ -205,10 +205,18 @@ class _ModelScanPageState extends State<ModelScanPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.orange,
+                      ),
                       onPressed: () => pickImage(ImageSource.camera),
                       child: const Text("Camera"),
                     ),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.orange,
+                      ),
                       onPressed: () => pickImage(ImageSource.gallery),
                       child: const Text("Gallery"),
                     ),
@@ -233,8 +241,10 @@ class _ModelScanPageState extends State<ModelScanPage> {
                         runSpacing: 10,
                         children: detections.map((d) {
                           return Chip(
+                            backgroundColor: Colors.orange,
                             label: Text(
-                                "${d.label} (${d.score.toStringAsFixed(2)})"),
+                                "${d.label} (${d.score.toStringAsFixed(2)})", style: TextStyle(color: Colors.black),),
+                                side: BorderSide.none,
                           );
                         }).toList(),
                       ),
