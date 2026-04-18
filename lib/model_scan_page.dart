@@ -1,4 +1,4 @@
-// FULL UPDATED CODE (ONLY CHANGED PARTS MARKED 🔥)
+// 🔥 UPDATED WITH SPAM PROTECTION
 
 import 'package:flutter/material.dart';
 import 'dart:io';
@@ -35,8 +35,10 @@ class _ModelScanPageState extends State<ModelScanPage> {
   List<dynamic> nutritionData = [];
   Map<String, Map<String, dynamic>?> nutritionMap = {};
 
-  // 🔥 NEW
   bool showSheet = false;
+
+  // 🔥 NEW (IMPORTANT)
+  bool isProcessing = false;
 
   final List<String> labels = [
     "Aloo_Gobhi","Aloo_mattar","Biryani","Chapati","Banana","Chutney",
@@ -78,7 +80,7 @@ class _ModelScanPageState extends State<ModelScanPage> {
         image = File(picked.path);
         detections.clear();
         nutritionMap.clear();
-        showSheet = false; // 🔥 reset sheet
+        showSheet = false;
       });
     }
   }
@@ -100,59 +102,72 @@ class _ModelScanPageState extends State<ModelScanPage> {
   }
 
   Future<void> runModel() async {
-    if (image == null || !isModelLoaded) return;
-
-    final bytes = await image!.readAsBytes();
-    final original = img.decodeImage(bytes)!;
-
-    final input = preprocess(original);
-
-    var output = List.generate(
-      1,
-      (_) => List.generate(23, (_) => List.filled(8400, 0.0)),
-    );
-
-    interpreter.run(input.reshape([1, 640, 640, 3]), output);
-
-    Map<String, double> uniqueResults = {};
-
-    for (int i = 0; i < 8400; i++) {
-      int cls = -1;
-      double best = 0;
-
-      for (int c = 5; c < 23; c++) {
-        if (output[0][c][i] > best) {
-          best = output[0][c][i];
-          cls = c - 5;
-        }
-      }
-
-      if (best > 0.5) {
-        String label = labels[cls];
-
-        if (!uniqueResults.containsKey(label) ||
-            uniqueResults[label]! < best) {
-          uniqueResults[label] = best;
-        }
-      }
-    }
-
-    List<Detection> results = uniqueResults.entries
-        .map((e) => Detection(e.key, e.value))
-        .toList();
-
-    results.sort((a, b) => b.score.compareTo(a.score));
+    // 🔥 BLOCK MULTIPLE CLICKS
+    if (image == null || !isModelLoaded || isProcessing) return;
 
     setState(() {
-      detections = results;
+      isProcessing = true;
+    });
 
-      nutritionMap.clear();
-      for (var d in detections) {
-        nutritionMap[d.label] = getNutrition(d.label);
+    try {
+      final bytes = await image!.readAsBytes();
+      final original = img.decodeImage(bytes)!;
+
+      final input = preprocess(original);
+
+      var output = List.generate(
+        1,
+        (_) => List.generate(23, (_) => List.filled(8400, 0.0)),
+      );
+
+      interpreter.run(input.reshape([1, 640, 640, 3]), output);
+
+      Map<String, double> uniqueResults = {};
+
+      for (int i = 0; i < 8400; i++) {
+        int cls = -1;
+        double best = 0;
+
+        for (int c = 5; c < 23; c++) {
+          if (output[0][c][i] > best) {
+            best = output[0][c][i];
+            cls = c - 5;
+          }
+        }
+
+        if (best > 0.5) {
+          String label = labels[cls];
+
+          if (!uniqueResults.containsKey(label) ||
+              uniqueResults[label]! < best) {
+            uniqueResults[label] = best;
+          }
+        }
       }
 
-      showSheet = true; // 🔥 SHOW SHEET AFTER MODEL RUN
-    });
+      List<Detection> results = uniqueResults.entries
+          .map((e) => Detection(e.key, e.value))
+          .toList();
+
+      results.sort((a, b) => b.score.compareTo(a.score));
+
+      setState(() {
+        detections = results;
+
+        nutritionMap.clear();
+        for (var d in detections) {
+          nutritionMap[d.label] = getNutrition(d.label);
+        }
+
+        showSheet = true;
+      });
+    } catch (e) {
+      print("Error: $e");
+    } finally {
+      setState(() {
+        isProcessing = false; // 🔓 unlock
+      });
+    }
   }
 
   Widget nutrientTile(String title, String value) {
@@ -168,14 +183,13 @@ class _ModelScanPageState extends State<ModelScanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF121212),
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
         title: const Text("Model Scan"),
         backgroundColor: Colors.black,
         foregroundColor: Colors.orange,
       ),
 
-      // 🔥 STACK (IMPORTANT)
       body: Stack(
         children: [
 
@@ -188,7 +202,7 @@ class _ModelScanPageState extends State<ModelScanPage> {
                   height: 220,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Color(0xFF121212),
+                    color: const Color(0xFF121212),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: image != null
@@ -196,7 +210,12 @@ class _ModelScanPageState extends State<ModelScanPage> {
                           borderRadius: BorderRadius.circular(16),
                           child: Image.file(image!, fit: BoxFit.cover),
                         )
-                      : const Center(child: Text("No image selected", style: TextStyle(color: Colors.white),)),
+                      : const Center(
+                          child: Text(
+                            "No image selected",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
                 ),
 
                 const SizedBox(height: 20),
@@ -225,17 +244,31 @@ class _ModelScanPageState extends State<ModelScanPage> {
 
                 const SizedBox(height: 16),
 
+                // 🔥 UPDATED BUTTON
                 ElevatedButton(
-                  onPressed: runModel,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                  child: const Text("Model Scan",
-                      style: TextStyle(color: Colors.black)),
+                  onPressed: isProcessing ? null : runModel,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                  ),
+                  child: isProcessing
+    ? const Text(
+        "Observing...",
+        style: TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+        ),
+      )
+    : const Text(
+        "Model Scan",
+        style: TextStyle(color: Colors.black),
+      ),
                 ),
 
                 const SizedBox(height: 20),
 
                 detections.isEmpty
-                    ? const Text("No food detected")
+                    ? const Text("No food detected",
+                        style: TextStyle(color: Colors.white))
                     : Wrap(
                         spacing: 10,
                         runSpacing: 10,
@@ -243,8 +276,10 @@ class _ModelScanPageState extends State<ModelScanPage> {
                           return Chip(
                             backgroundColor: Colors.orange,
                             label: Text(
-                                "${d.label} (${d.score.toStringAsFixed(2)})", style: TextStyle(color: Colors.black),),
-                                side: BorderSide.none,
+                              "${d.label} (${d.score.toStringAsFixed(2)})",
+                              style: const TextStyle(color: Colors.black),
+                            ),
+                            side: BorderSide.none,
                           );
                         }).toList(),
                       ),
@@ -252,7 +287,7 @@ class _ModelScanPageState extends State<ModelScanPage> {
             ),
           ),
 
-          // 🔥 PERSISTENT BOTTOM SHEET
+          // BOTTOM SHEET (UNCHANGED)
           if (showSheet)
             DraggableScrollableSheet(
               initialChildSize: 0.15,
@@ -271,7 +306,6 @@ class _ModelScanPageState extends State<ModelScanPage> {
                     padding: const EdgeInsets.all(16),
                     children: [
 
-                      // drag handle
                       Center(
                         child: Container(
                           width: 50,
@@ -295,20 +329,11 @@ class _ModelScanPageState extends State<ModelScanPage> {
 
                       const SizedBox(height: 20),
 
-                      // if (image != null)
-                      //   ClipRRect(
-                      //     borderRadius: BorderRadius.circular(15),
-                      //     child: Image.file(image!, height: 150, fit: BoxFit.cover),
-                      //   ),
-
-                      const SizedBox(height: 20),
-
-                      // 🔥 MULTI FOOD NUTRITION
                       ...detections.map((d) {
                         final n = nutritionMap[d.label];
 
                         if (n == null) {
-                          return Text("${d.label}: No data",
+                          return const Text("No data",
                               style: TextStyle(color: Colors.white));
                         }
 
@@ -319,12 +344,10 @@ class _ModelScanPageState extends State<ModelScanPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-
                                 Text(d.label,
                                     style: const TextStyle(
                                         color: Colors.orange,
                                         fontWeight: FontWeight.bold)),
-
                                 nutrientTile("Calories", "${n["calories"]}"),
                                 nutrientTile("Protein", "${n["protein"]}g"),
                                 nutrientTile("Carbs", "${n["carbs"]}g"),
