@@ -1,3 +1,5 @@
+// FULL UPDATED CODE (ONLY CHANGED PARTS MARKED 🔥)
+
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -5,7 +7,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
-import 'dart:convert'; // ✅ ADDED
+import 'dart:convert';
 
 class ModelScanPage extends StatefulWidget {
   const ModelScanPage({super.key});
@@ -30,53 +32,34 @@ class _ModelScanPageState extends State<ModelScanPage> {
 
   List<Detection> detections = [];
 
-  // ✅ ADDED
   List<dynamic> nutritionData = [];
   Map<String, Map<String, dynamic>?> nutritionMap = {};
 
+  // 🔥 NEW
+  bool showSheet = false;
+
   final List<String> labels = [
-    "Aloo_Gobhi",
-    "Aloo_mattar",
-    "Biryani",
-    "Chapati",
-    "Banana",
-    "Chutney",
-    "Dal",
-    "Dal",
-    "Dosa",
-    "Dal",
-    "Idli",
-    "Eggs",
-    "Orange",
-    "Naan",
-    "Paneer_curry",
-    "Paratha",
-    "Puri",
-    "Pav",
-    "Rice",
+    "Aloo_Gobhi","Aloo_mattar","Biryani","Chapati","Banana","Chutney",
+    "Dal","Dal","Dosa","Dal","Idli","Eggs","Orange","Naan",
+    "Paneer_curry","Paratha","Puri","Pav","Rice",
   ];
 
   @override
   void initState() {
     super.initState();
     loadModel();
-    loadNutrition(); // ✅ ADDED
+    loadNutrition();
   }
 
-  // ✅ ADDED
   Future<void> loadNutrition() async {
-    final String jsonString = await rootBundle.loadString(
-      'assets/nutrition.json',
-    );
+    final String jsonString =
+        await rootBundle.loadString('assets/nutrition.json');
     nutritionData = json.decode(jsonString);
   }
 
-  // ✅ ADDED
   Map<String, dynamic>? getNutrition(String foodName) {
     for (var item in nutritionData) {
-      if (item["name"] == foodName) {
-        return item;
-      }
+      if (item["name"] == foodName) return item;
     }
     return null;
   }
@@ -84,7 +67,6 @@ class _ModelScanPageState extends State<ModelScanPage> {
   Future<void> loadModel() async {
     final data = await rootBundle.load('assets/model/best.tflite');
     interpreter = Interpreter.fromBuffer(data.buffer.asUint8List());
-
     setState(() => isModelLoaded = true);
   }
 
@@ -95,21 +77,20 @@ class _ModelScanPageState extends State<ModelScanPage> {
       setState(() {
         image = File(picked.path);
         detections.clear();
-        nutritionMap.clear(); // ✅ ADDED
+        nutritionMap.clear();
+        showSheet = false; // 🔥 reset sheet
       });
     }
   }
 
   Float32List preprocess(img.Image image) {
     final resized = img.copyResize(image, width: 640, height: 640);
-
     final input = Float32List(1 * 640 * 640 * 3);
-    int i = 0;
 
+    int i = 0;
     for (int y = 0; y < 640; y++) {
       for (int x = 0; x < 640; x++) {
         final p = resized.getPixel(x, y);
-
         input[i++] = p.r / 255.0;
         input[i++] = p.g / 255.0;
         input[i++] = p.b / 255.0;
@@ -149,7 +130,8 @@ class _ModelScanPageState extends State<ModelScanPage> {
       if (best > 0.5) {
         String label = labels[cls];
 
-        if (!uniqueResults.containsKey(label) || uniqueResults[label]! < best) {
+        if (!uniqueResults.containsKey(label) ||
+            uniqueResults[label]! < best) {
           uniqueResults[label] = best;
         }
       }
@@ -164,12 +146,23 @@ class _ModelScanPageState extends State<ModelScanPage> {
     setState(() {
       detections = results;
 
-      // ✅ ADDED
       nutritionMap.clear();
       for (var d in detections) {
         nutritionMap[d.label] = getNutrition(d.label);
       }
+
+      showSheet = true; // 🔥 SHOW SHEET AFTER MODEL RUN
     });
+  }
+
+  Widget nutrientTile(String title, String value) {
+    return ListTile(
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      trailing: Text(
+        value,
+        style: const TextStyle(color: Colors.orange),
+      ),
+    );
   }
 
   @override
@@ -180,143 +173,169 @@ class _ModelScanPageState extends State<ModelScanPage> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // IMAGE
-            Container(
-              height: 220,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: image != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.file(image!, fit: BoxFit.cover),
-                    )
-                  : const Center(child: Text("No image selected")),
-            ),
 
-            const SizedBox(height: 20),
+      // 🔥 STACK (IMPORTANT)
+      body: Stack(
+        children: [
 
-            // BUTTONS
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          // MAIN UI
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               children: [
-                ElevatedButton(
-                  onPressed: () => pickImage(ImageSource.camera),
-                  child: const Text("Camera"),
+                Container(
+                  height: 220,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: image != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.file(image!, fit: BoxFit.cover),
+                        )
+                      : const Center(child: Text("No image selected")),
                 ),
-                ElevatedButton(
-                  onPressed: () => pickImage(ImageSource.gallery),
-                  child: const Text("Gallery"),
+
+                const SizedBox(height: 20),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => pickImage(ImageSource.camera),
+                      child: const Text("Camera"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => pickImage(ImageSource.gallery),
+                      child: const Text("Gallery"),
+                    ),
+                  ],
                 ),
+
+                const SizedBox(height: 16),
+
+                ElevatedButton(
+                  onPressed: runModel,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                  child: const Text("Model Scan",
+                      style: TextStyle(color: Colors.white)),
+                ),
+
+                const SizedBox(height: 20),
+
+                detections.isEmpty
+                    ? const Text("No food detected")
+                    : Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: detections.map((d) {
+                          return Chip(
+                            label: Text(
+                                "${d.label} (${d.score.toStringAsFixed(2)})"),
+                          );
+                        }).toList(),
+                      ),
               ],
             ),
+          ),
 
-            const SizedBox(height: 16),
-
-            ElevatedButton(
-              onPressed: runModel,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-              child: const Text(
-                "Model scan",
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // RESULTS
-            detections.isEmpty
-                ? const Text("No food detected")
-                : Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: detections.map((d) {
-                      return Chip(
-                        label: Text(
-                          "${d.label} (${d.score.toStringAsFixed(2)})",
-                        ),
-                        backgroundColor: Colors.green.shade100,
-                      );
-                    }).toList(),
+          // 🔥 PERSISTENT BOTTOM SHEET
+          if (showSheet)
+            DraggableScrollableSheet(
+              initialChildSize: 0.15,
+              minChildSize: 0.15,
+              maxChildSize: 0.85,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(25),
+                    ),
                   ),
+                  child: ListView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(16),
+                    children: [
 
-            const SizedBox(height: 20),
-
-            // ✅ ADDED NUTRITION UI
-            Expanded(
-              child: ListView(
-                children: detections.map((d) {
-                  final nutrition = nutritionMap[d.label];
-
-                  if (nutrition == null) {
-                    return Text("${d.label}: No data");
-                  }
-
-                  return Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-
-                      children: [
-
-                        Text(
-                          "⚠️ Values are estimated and based on 100g serving.",
-                          style: TextStyle(
-                            fontSize: 12,
+                      // drag handle
+                      Center(
+                        child: Container(
+                          width: 50,
+                          height: 5,
+                          margin: const EdgeInsets.only(bottom: 15),
+                          decoration: BoxDecoration(
                             color: Colors.grey,
-                            fontStyle: FontStyle.italic,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          d.label,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
+                      ),
 
-                        Text(
-                          "Calories: ${nutrition["calories"]}",
-                          style: const TextStyle(color: Colors.white),
+                      const Text(
+                        "Nutrients",
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
                         ),
+                      ),
 
-                        Text(
-                          "Protein: ${nutrition["protein"]}g",
-                          style: const TextStyle(color: Colors.white),
-                        ),
+                      const SizedBox(height: 20),
 
-                        Text(
-                          "Carbs: ${nutrition["carbs"]}g",
-                          style: const TextStyle(color: Colors.white),
-                        ),
+                      // if (image != null)
+                      //   ClipRRect(
+                      //     borderRadius: BorderRadius.circular(15),
+                      //     child: Image.file(image!, height: 150, fit: BoxFit.cover),
+                      //   ),
 
-                        Text(
-                          "Fat: ${nutrition["fat"]}g",
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
+                      const SizedBox(height: 20),
+
+                      // 🔥 MULTI FOOD NUTRITION
+                      ...detections.map((d) {
+                        final n = nutritionMap[d.label];
+
+                        if (n == null) {
+                          return Text("${d.label}: No data",
+                              style: TextStyle(color: Colors.white));
+                        }
+
+                        return Card(
+                          color: Colors.grey[900],
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+
+                                Text(d.label,
+                                    style: const TextStyle(
+                                        color: Colors.orange,
+                                        fontWeight: FontWeight.bold)),
+
+                                nutrientTile("Calories", "${n["calories"]}"),
+                                nutrientTile("Protein", "${n["protein"]}g"),
+                                nutrientTile("Carbs", "${n["carbs"]}g"),
+                                nutrientTile("Fat", "${n["fat"]}g"),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+
+                      const SizedBox(height: 20),
+
+                      const Text(
+                        "⚠️ Values are estimated per 100g",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
