@@ -227,9 +227,9 @@ class _ModelScanPageState extends State<ModelScanPage> {
 
                 ElevatedButton(
                   onPressed: runModel,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
                   child: const Text("Model Scan",
-                      style: TextStyle(color: Colors.white)),
+                      style: TextStyle(color: Colors.black)),
                 ),
 
                 const SizedBox(height: 20),

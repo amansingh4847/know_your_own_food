@@ -198,8 +198,8 @@ class _ScanPageState extends State<ScanPage> {
               ElevatedButton(
                 onPressed: image == null ? null : sendToImagga,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.black,
                 ),
                 child: const Text("Scan"),
               ),
@@ -212,7 +212,10 @@ class _ScanPageState extends State<ScanPage> {
                   : Wrap(
                       spacing: 8,
                       children: detectedTags.map((tag) {
-                        return Chip(label: Text(tag));
+                        return Chip(label: Text(tag,style: TextStyle(color: Colors.black),),
+                        backgroundColor: Colors.orange,
+                        side: BorderSide.none,
+                        );
                       }).toList(),
                     ),
             ],

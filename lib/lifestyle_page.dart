@@ -6,12 +6,13 @@ class LifestylePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFF121212),
       appBar: AppBar(
-        title: Text("Lifestyle"),
+        title: Text("Lifestyle",style: TextStyle(color: Colors.orange),),
         backgroundColor: Colors.black,
       ),
       body: Center(
-        child: Text("Lifestyle Page (Login later)"),
+        child: Text("Lifestyle Page (Login later)", style: TextStyle(color: Colors.orange),),
       ),
     );
   }
