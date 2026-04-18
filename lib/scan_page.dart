@@ -13,7 +13,6 @@ class ScanPage extends StatefulWidget {
 }
 
 class _ScanPageState extends State<ScanPage> {
-  //image file
   File? image;
 
   String calories = "";
@@ -21,29 +20,24 @@ class _ScanPageState extends State<ScanPage> {
   String fat = "";
   String carbs = "";
 
-  //image picker
+  bool showSheet = false;
+
   final picker = ImagePicker();
-
-  //pick image method
-  Future<void> pickImage(ImageSource source) async {
-    //pick image from cameraa or gallery
-    final PickedFile = await picker.pickImage(source: source);
-
-    //update selected image
-    if (PickedFile != null) {
-      setState(() {
-        image = File(PickedFile!.path);
-      });
-    }
-  }
-
-  //list to store results
   List<String> detectedTags = [];
 
-  //image converter
-  Future<String> convertImageToBase64() async {
-    final bytes = await image!.readAsBytes();
-    return base64Encode(bytes);
+  Future<void> pickImage(ImageSource source) async {
+    final pickedFile = await picker.pickImage(source: source);
+
+    if (pickedFile != null) {
+      setState(() {
+        image = File(pickedFile.path);
+
+        // reset old data
+        detectedTags.clear();
+        calories = protein = fat = carbs = "";
+        showSheet = false;
+      });
+    }
   }
 
   Future<void> sendToImagga() async {
@@ -65,27 +59,21 @@ class _ScanPageState extends State<ScanPage> {
     var response = await request.send();
     var responseBody = await response.stream.bytesToString();
 
-    print("Status: ${response.statusCode}");
-    print("Body: $responseBody");
-
     final data = jsonDecode(responseBody);
 
     List tags = data["result"]["tags"];
 
     detectedTags = tags
         .map<String>((tag) => tag["tag"]["en"].toString())
-        .take(3) // top 5 tags only (optional)
+        .take(3)
         .toList();
 
     String mainFood = pickMainFood(detectedTags);
-    print("Main Food: $mainFood");
 
     await getNutritionFromSpoonacular(mainFood);
 
     setState(() {});
   }
-
-  //we need to pick main food
 
   String pickMainFood(List<String> tags) {
     List<String> ignoreWords = [
@@ -103,7 +91,7 @@ class _ScanPageState extends State<ScanPage> {
     for (String tag in tags) {
       bool isIgnored = ignoreWords.any((word) => tag.contains(word));
       if (!isIgnored) {
-        return tag; // first valid food
+        return tag;
       }
     }
     return tags.isNotEmpty ? tags.first : "food";
@@ -119,9 +107,6 @@ class _ScanPageState extends State<ScanPage> {
 
     final response = await http.get(Uri.parse(url));
 
-    print("Nutrition Status: ${response.statusCode}");
-    print("Nutrition Body: ${response.body}");
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
 
@@ -130,104 +115,173 @@ class _ScanPageState extends State<ScanPage> {
       fat = data["fat"]["value"].toString();
       carbs = data["carbs"]["value"].toString();
 
-      setState(() {});
+      // 🔥 SHOW SHEET (persistent)
+      setState(() {
+        showSheet = true;
+      });
     }
+  }
+
+  Widget nutrientTile(String title, String value) {
+    return Card(
+      color: Colors.grey[900],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: ListTile(
+        title: Text(title, style: const TextStyle(color: Colors.white)),
+        trailing: Text(
+          value,
+          style: const TextStyle(
+            color: Colors.orange,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Scan Food"),
-      backgroundColor: Colors.black,
-        foregroundColor: Colors.white,),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
+      appBar: AppBar(
+        title: const Text("Scan Food"),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+      ),
+
+      body: Stack(
         children: [
-          //image display
-          SizedBox(
-            height: 200,
-            width: 200,
-            child: image != null
-                ?
-                  //image selected
-                  Image.file(image!)
-                :
-                  //no image slected
-                  const Center(child: Text("NO Image selected")),
-          ),
 
-          //buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          // 🔹 MAIN UI
+          Column(
             children: [
-              ElevatedButton(
-                onPressed: () => pickImage(ImageSource.camera),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text("camera"),
+              const SizedBox(height: 20),
+
+              SizedBox(
+                height: 200,
+                width: 200,
+                child: image != null
+                    ? Image.file(image!)
+                    : const Center(child: Text("NO Image selected")),
               ),
 
-              const SizedBox(width: 16),
+              const SizedBox(height: 20),
 
-              ElevatedButton(
-                onPressed: () => pickImage(ImageSource.gallery),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text("Gallery"),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          ElevatedButton(
-            onPressed: image == null ? null : sendToImagga,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-            ),
-            child: Text("OK"),
-          ),
-
-          const SizedBox(height: 20),
-
-          detectedTags.isEmpty
-              ? const Text("No tags detected yet")
-              : Column(
-                  children: [
-                    const Text(
-                      "Detected Tags",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => pickImage(ImageSource.camera),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
                     ),
-                    const SizedBox(height: 10),
-                    Wrap(
+                    child: const Text("Camera"),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: () => pickImage(ImageSource.gallery),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text("Gallery"),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              ElevatedButton(
+                onPressed: image == null ? null : sendToImagga,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text("Scan"),
+              ),
+
+              const SizedBox(height: 20),
+
+              detectedTags.isEmpty
+                  ? const Text("No tags detected yet")
+                  : Wrap(
                       spacing: 8,
                       children: detectedTags.map((tag) {
                         return Chip(label: Text(tag));
                       }).toList(),
                     ),
+            ],
+          ),
 
-                    const SizedBox(height: 20),
+          // 🔥 PERSISTENT DRAGGABLE BOTTOM SHEET
+          if (showSheet)
+            DraggableScrollableSheet(
+              initialChildSize: 0.15, // always visible
+              minChildSize: 0.15,     // cannot close
+              maxChildSize: 0.85,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(25),
+                    ),
+                  ),
+                  child: ListView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(16),
+                    children: [
 
-                    calories.isEmpty
-                        ? Container()
-                        : Column(
-                            children: [
-                              Text("----> Per Serving <----"),
-                              Text("Calories: $calories kcal"),
-                              Text("Protein: $protein g"),
-                              Text("Fat: $fat g"),
-                              Text("Carbs: $carbs g"),
-                            ],
+                      // Drag handle
+                      Center(
+                        child: Container(
+                          width: 50,
+                          height: 5,
+                          margin: const EdgeInsets.only(bottom: 15),
+                          decoration: BoxDecoration(
+                            color: Colors.grey,
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                  ],
-                ),
+                        ),
+                      ),
+
+                      const Text(
+                        "Nutrition Info",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      if (image != null)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: Image.file(image!, height: 150, fit: BoxFit.cover),
+                        ),
+
+                      const SizedBox(height: 20),
+
+                      nutrientTile("Calories", "$calories kcal"),
+                      nutrientTile("Protein", "$protein g"),
+                      nutrientTile("Fat", "$fat g"),
+                      nutrientTile("Carbs", "$carbs g"),
+
+                      const SizedBox(height: 20),
+
+                      const Text(
+                        "⚠️ Values are estimated (per serving)",
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
         ],
       ),
     );
