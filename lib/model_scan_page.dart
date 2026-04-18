@@ -168,6 +168,7 @@ class _ModelScanPageState extends State<ModelScanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFF121212),
       appBar: AppBar(
         title: const Text("Model Scan"),
         backgroundColor: Colors.black,

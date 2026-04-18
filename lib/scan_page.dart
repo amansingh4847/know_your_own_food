@@ -144,10 +144,11 @@ class _ScanPageState extends State<ScanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFF121212),
       appBar: AppBar(
         title: const Text("Scan Food"),
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.orange,
       ),
 
       body: Stack(
@@ -163,7 +164,8 @@ class _ScanPageState extends State<ScanPage> {
                 width: 200,
                 child: image != null
                     ? Image.file(image!)
-                    : const Center(child: Text("NO Image selected")),
+                    : const Center(child: Text("NO Image selected",
+                    style: TextStyle(color: Colors.white),)),
               ),
 
               const SizedBox(height: 20),
@@ -175,7 +177,7 @@ class _ScanPageState extends State<ScanPage> {
                     onPressed: () => pickImage(ImageSource.camera),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
+                      foregroundColor: Colors.orange,
                     ),
                     child: const Text("Camera"),
                   ),
@@ -184,7 +186,7 @@ class _ScanPageState extends State<ScanPage> {
                     onPressed: () => pickImage(ImageSource.gallery),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
+                      foregroundColor: Colors.orange,
                     ),
                     child: const Text("Gallery"),
                   ),
@@ -205,7 +207,8 @@ class _ScanPageState extends State<ScanPage> {
               const SizedBox(height: 20),
 
               detectedTags.isEmpty
-                  ? const Text("No tags detected yet")
+                  ? const Text("No tags detected yet",
+                  style: TextStyle(color: Colors.white),)
                   : Wrap(
                       spacing: 8,
                       children: detectedTags.map((tag) {
@@ -248,7 +251,7 @@ class _ScanPageState extends State<ScanPage> {
                       ),
 
                       const Text(
-                        "Nutrition Info",
+                        "Nutrients",
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -258,11 +261,11 @@ class _ScanPageState extends State<ScanPage> {
 
                       const SizedBox(height: 20),
 
-                      if (image != null)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: Image.file(image!, height: 150, fit: BoxFit.cover),
-                        ),
+                      // if (image != null)
+                      //   ClipRRect(
+                      //     borderRadius: BorderRadius.circular(15),
+                      //     child: Image.file(image!, height: 150, fit: BoxFit.cover),
+                      //   ),
 
                       const SizedBox(height: 20),
 
@@ -271,12 +274,6 @@ class _ScanPageState extends State<ScanPage> {
                       nutrientTile("Fat", "$fat g"),
                       nutrientTile("Carbs", "$carbs g"),
 
-                      const SizedBox(height: 20),
-
-                      const Text(
-                        "⚠️ Values are estimated (per serving)",
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
                     ],
                   ),
                 );
