@@ -21,7 +21,7 @@ class HomePage extends StatelessWidget {
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: Text("About KYOF", style: TextStyle(color: Colors.orange),),
+              title: Text("About KYOF(know Your Own food)", style: TextStyle(color: Colors.orange),),
               backgroundColor: Color(0xFF121212),
 
               content: Text(
